@@ -11,5 +11,5 @@ uv sync
 
 ## Running the Application
 ```bash
-streamlit run app/app.py
+streamlit run main.py
 ```

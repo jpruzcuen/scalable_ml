@@ -95,15 +95,15 @@ def main():
         selected_region = st.selectbox("Region (Län):", regions)
         
 
-        # # Risk threshold
-        # risk_threshold = st.slider(
-        #     "Minimum outbreak likelihood:",
-        #     min_value=0.0,
-        #     max_value=1.0,
-        #     value=0.3,
-        #     step=0.05,
-        #     help="Filter locations by minimum predicted outbreak likelihood"
-        # )
+        # Risk threshold
+        risk_threshold = st.slider(
+            "Minimum outbreak likelihood:",
+            min_value=0.0,
+            max_value=1.0,
+            value=0.3,
+            step=0.05,
+            help="Filter locations by minimum predicted outbreak likelihood"
+        )
         
         st.markdown("---")
 

@@ -223,11 +223,6 @@ def sample_era5_to_points(obs_df: pd.DataFrame, ds: xr.Dataset,
 
 # NDVI data is downloaded from Google's Earth Engine
 
-sweden_bbox = ee.Geometry.Rectangle([
-    10.5, 55.0,   # lon_min, lat_min
-    24.5, 69.5    # lon_max, lat_max
-])
-
 
 def df_to_ee_points(df):
     """
@@ -250,7 +245,28 @@ def df_to_ee_points(df):
 
     return ee.FeatureCollection(features)
 
-def monthly_ndvi_image(dataset, year, month, region=False):
+def era5_grid_to_points_df(ds):
+    """
+    Convert era5 grid to df
+    """
+    lats = ds.latitude.values
+    lons = ds.longitude.values
+
+    rows = []
+    idx = 0
+    for lat in lats:
+        for lon in lons:
+            rows.append({
+                "row_id": idx,
+                "Lat": float(lat),
+                "Lon": float(lon),
+            })
+            idx += 1
+
+    return pd.DataFrame(rows)
+
+
+def monthly_ndvi_image(dataset, year, month, region=None):
     """
     Select satellite image from modis 
     """
@@ -259,7 +275,7 @@ def monthly_ndvi_image(dataset, year, month, region=False):
 
     monthly = dataset.filterDate(start, end)
 
-    result = ee.Image(
+    results = ee.Image(
             ee.Algorithms.If(
                 monthly.size().gt(0),
                 monthly.mean().multiply(0.0001).rename("NDVI"),
@@ -267,7 +283,7 @@ def monthly_ndvi_image(dataset, year, month, region=False):
             )
         ).set("year", year).set("month", month)
 
-    if region:
+    if region is not None:
         results = results.clip(region)
 
     return results
@@ -276,25 +292,16 @@ def chunk_list(lst, size):
     for i in range(0, len(lst), size):
         yield lst[i:i + size]
 
-def extract_monthly_ndvi(dataset, obs, chunk_size=500):
+def download_monthly_ndvi(dataset, points_df, months, region=None, chunk_size=500):
     results = []
-
-    months = (
-        obs["Month"]
-        .dt.to_period("M")
-        .dt.to_timestamp()
-        .drop_duplicates()
-        .sort_values()
-    )
-
+    
     for m in tqdm(months, desc="Months"):
         img = monthly_ndvi_image(dataset, m.year, m.month)
 
-        chunks = list(chunk_list(obs.index.tolist(), chunk_size))
+        chunks = list(chunk_list(points_df.index.tolist(), chunk_size))
         
-        for chunk_idx, chunk in enumerate(tqdm(chunks, desc=f"{m.strftime('%Y-%m')}", leave=False)):
-            chunk_df = obs.loc[chunk]
-
+        for chunk in chunks:
+            chunk_df = points_df.loc[chunk]
             points_fc = df_to_ee_points(chunk_df)
 
             sampled = img.sampleRegions(
@@ -313,9 +320,8 @@ def extract_monthly_ndvi(dataset, obs, chunk_size=500):
                     "row_id": p["row_id"],
                     "Month": m,
                     "NDVI": p.get("NDVI"),
-                    "Lon": lon,
                     "Lat": lat,
+                    "Lon": lon,
                 })
 
     return pd.DataFrame(results)
-

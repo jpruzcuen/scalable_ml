@@ -5,8 +5,7 @@ import geopandas
 import matplotlib.pyplot as plt
 from dateutil.relativedelta import relativedelta
 
-def download_weather_for_inference():
-    save = True
+def download_weather_for_inference(save=False):
 
     end = pd.Timestamp.today()
     start = end.replace(day=1) - relativedelta(months=2) ## -2 months to be able to create lagged features

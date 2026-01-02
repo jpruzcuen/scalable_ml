@@ -236,7 +236,7 @@ def df_to_ee_points(df):
                 ee.Geometry.Point(row["Lon"], row["Lat"]),
                 {
                     "row_id": int(row["row_id"]),
-                    "month": row["Month"].strftime("%Y-%m-01"),
+                    #"month": row["Month"].strftime("%Y-%m-01"),
                     "Lat": float(row["Lat"]),
                     "Lon": float(row["Lon"]),
                 }
@@ -292,12 +292,20 @@ def chunk_list(lst, size):
     for i in range(0, len(lst), size):
         yield lst[i:i + size]
 
-def download_monthly_ndvi(dataset, points_df, months, region=None, chunk_size=500):
+
+def download_monthly_ndvi_from_obs(dataset, points_df, months, chunk_size=500):
+    """
+
+    """
+    #TODO : Update to older version
     results = []
     
     for m in tqdm(months, desc="Months"):
         img = monthly_ndvi_image(dataset, m.year, m.month)
-
+        
+        # Track which row_ids we received data for this month
+        received_row_ids = set()
+        
         chunks = list(chunk_list(points_df.index.tolist(), chunk_size))
         
         for chunk in chunks:
@@ -307,21 +315,90 @@ def download_monthly_ndvi(dataset, points_df, months, region=None, chunk_size=50
             sampled = img.sampleRegions(
                 collection=points_fc,
                 scale=250,
-                geometries=True
+                geometries=False
             )
 
             info = sampled.getInfo()
 
             for f in info["features"]:
                 p = f["properties"]
-                lon, lat = f["geometry"]["coordinates"]
+                row_id = p["row_id"]
+                received_row_ids.add(row_id)
 
                 results.append({
-                    "row_id": p["row_id"],
+                    "row_id": row_id,
                     "Month": m,
                     "NDVI": p.get("NDVI"),
-                    "Lat": lat,
-                    "Lon": lon,
+                    "Lat": p["Lat"],
+                    "Lon": p["Lon"],
+                })
+        
+        # Add missing row_ids with None NDVI values
+        for _, row in points_df.iterrows():
+            row_id = int(row["row_id"])
+            if row_id not in received_row_ids:
+                results.append({
+                    "row_id": row_id,
+                    "Month": m,
+                    "NDVI": None,
+                    "Lat": row["Lat"],
+                    "Lon": row["Lon"],
+                })
+
+    return pd.DataFrame(results)
+
+def download_monthly_ndvi(dataset, points_df, months, chunk_size=500):
+    """
+    Download the NDVI values for a given month list across coordinates.
+    
+    For each month, samples all coordinates in points_df against that month's image.
+    Handles missing data from Earth Engine (null/masked pixels).
+    """
+    results = []
+    
+    for m in tqdm(months, desc="Months"):
+        img = monthly_ndvi_image(dataset, m.year, m.month)
+        
+        # Track which row_ids we received data for this month
+        received_row_ids = set()
+        
+        chunks = list(chunk_list(points_df.index.tolist(), chunk_size))
+        
+        for chunk in chunks:
+            chunk_df = points_df.loc[chunk]
+            points_fc = df_to_ee_points(chunk_df)
+
+            sampled = img.sampleRegions(
+                collection=points_fc,
+                scale=250,
+                geometries=False
+            )
+
+            info = sampled.getInfo()
+
+            for f in info["features"]:
+                p = f["properties"]
+                row_id = p["row_id"]
+                received_row_ids.add(row_id)
+
+                results.append({
+                    "row_id": row_id,
+                    "Month": m,
+                    "NDVI": p.get("NDVI"),
+                    "Lat": p["Lat"],
+                    "Lon": p["Lon"],
+                })
+        
+        # Add missing row_ids with None NDVI values
+        for _, row in points_df.iterrows():
+            row_id = int(row["row_id"])
+            if row_id not in received_row_ids:
+                results.append({
+                    "row_id": row_id,
+                    "Month": m,
+                    "NDVI": None,
+                    "Lat": row["Lat"],
+                    "Lon": row["Lon"],
                 })
 
     return pd.DataFrame(results)

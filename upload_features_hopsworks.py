@@ -12,7 +12,7 @@ print("=" * 60)
 # ========================================
 # CONFIGURE THIS FILE PATH
 # ========================================
-csv = './data/features.csv'  # <-- CHANGE THIS TO OUR FILE PATH
+csv = './data/predictions/pressence_1_12_2025_.csv' 
 # ========================================
 
 # Load CSV
@@ -43,7 +43,7 @@ print(f"Connected to project: {project.name}")
 print("\n Creating feature group...")
 beetle_fg = fs.get_or_create_feature_group(
     name='beetle_features',
-    description='Merged beetle observations, weather (ERA5), and NDVI features with lags for outbreak prediction',
+    description='Beetle observations, weather (ERA5), and NDVI features with lags for outbreak prediction',
     version=1,
     primary_key=['row_id'],
     event_time='month',

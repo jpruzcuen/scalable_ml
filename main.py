@@ -44,9 +44,9 @@ def load_predictions_from_hopsworks():
             'lon': 'Lon',
             'kommun': 'Kommun',
             'lan': 'Lan',
-            'outbreak_probability': 'outbreak_likelihood',
             'ndvi': 'NDVI',
-            'pressence': 'Pressence'
+            'pressence_prob': 'outbreak_likelihood', 
+            'pressence_pred': 'Pressence_pred'
         }
         
         data = data.rename(columns={k: v for k, v in column_mapping.items() if k in data.columns})
@@ -59,7 +59,7 @@ def load_predictions_from_hopsworks():
         if 'swvl1' not in data.columns and 'swvl1_lag1' in data.columns:
             data['swvl1'] = data['swvl1_lag1']
         if 'swvl2' not in data.columns and 'swvl2_lag1' in data.columns:
-            data['swvl2'] = data['swvl2_lag2']
+            data['swvl2'] = data['swvl2_lag1']
         if 'ssrd' not in data.columns and 'ssrd_lag1' in data.columns:
             data['ssrd'] = data['ssrd_lag1']
         if 'NDVI_anom' not in data.columns and 'ndvi_anom' in data.columns:
@@ -67,25 +67,16 @@ def load_predictions_from_hopsworks():
         elif 'NDVI_anom' not in data.columns:
             data['NDVI_anom'] = 0
         
-        # Create outbreak_likelihood if it doesn't exist
+        # Verify we have the outbreak_likelihood column
         if 'outbreak_likelihood' not in data.columns:
-            if 'outbreak_probability' in data.columns:
-                data['outbreak_likelihood'] = data['outbreak_probability']
-            elif 'pressence_pred' in data.columns:
-                data['outbreak_likelihood'] = data['pressence_pred']
-            elif 'Pressence' in data.columns:
-                # Create probability from presence data
-                data['outbreak_likelihood'] = data['Pressence'].apply(
-                    lambda x: np.random.uniform(0.7, 1.0) if x == 1 else np.random.uniform(0.0, 0.3)
-                )
-            else:
-                data['outbreak_likelihood'] = np.random.uniform(0, 1, len(data))
+            st.sidebar.error("No prediction column found in data!")
+            st.sidebar.info("Expected column: 'pressence_prob'")
         
         return data, "hopsworks"
         
     except Exception as e:
         st.sidebar.error(f"Hopsworks error: {str(e)}")
-        st.sidebar.info("💡 Falling back to local CSV file...")
+        st.sidebar.info("Falling back to local CSV file...")
         return load_predictions_from_csv()
 
 @st.cache_data
@@ -95,13 +86,12 @@ def load_predictions_from_csv():
         data = pd.read_csv('./data/predictions/pressence_1_12_2025_.csv')
         data['Month'] = pd.to_datetime(data['Month'])
         
-        if 'outbreak_likelihood' not in data.columns:
-            if 'outbreak_probability' in data.columns:
-                data['outbreak_likelihood'] = data['outbreak_probability']
-            elif 'Pressence_pred' in data.columns:
-                data['outbreak_likelihood'] = data['Pressence_pred'].apply(
-                    lambda x: np.random.uniform(0.7, 1.0) if x == 1 else np.random.uniform(0.0, 0.3)
-                )
+        if 'Pressence_prob' in data.columns:
+            data['outbreak_likelihood'] = data['Pressence_prob']
+        elif 'pressence_prob' in data.columns:
+            data['outbreak_likelihood'] = data['pressence_prob']
+        elif 'Pressence_pred' in data.columns:
+            data['outbreak_likelihood'] = data['Pressence_pred']
         
         # Map lag features
         if 't2m' not in data.columns and 't2m_lag1' in data.columns:
@@ -130,7 +120,6 @@ def load_data():
     return load_predictions_from_hopsworks()
 
 def main():
-    # Header with custom styling
     st.markdown('<h1 class="main-header">Bark Beetle Outbreak Monitor</h1>', unsafe_allow_html=True)
     st.markdown('<p class="subtitle">Predicting spruce bark beetle outbreaks across Sweden using machine learning</p>', unsafe_allow_html=True)
     
@@ -167,7 +156,7 @@ def main():
         if data_source == "hopsworks":
            # st.success("✅ Hopsworks Feature Store")
             st.caption(f"Last updated: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
-            if st.button("🔄 Refresh Data", use_container_width=True):
+            if st.button("🔄 Refresh Data", width='stretch'):
                 st.cache_data.clear()
                 st.rerun()
         elif data_source == "csv":
@@ -179,13 +168,14 @@ def main():
         st.subheader("Map Display")
         variable_options = {
             "Outbreak Likelihood": ("outbreak_likelihood", "Predicted probability of beetle outbreak"),
-            "Temperature": ("t2m", "Monthly average temperature (Kelvin)"),
-            "Precipitation": ("tp", "Total monthly precipitation (m)"),
-            "Soil Moisture L1": ("swvl1", "Volumetric soil water layer 1 (0-7cm)"),
-            "Soil Moisture L2": ("swvl2", "Volumetric soil water layer 2 (7-28cm)"),
-            "Solar Radiation": ("ssrd", "Surface solar radiation downwards (J/m²)"),
-            "NDVI": ("NDVI", "Normalized Difference Vegetation Index"),
-            "NDVI Anomaly": ("NDVI_anom", "NDVI deviation from climatology"),
+            "Outbreak Predicted (Binary)": ("Pressence_pred", "Yes/No outbreak based on threshold"),
+            #"Temperature": ("t2m", "Monthly average temperature (Kelvin)"),
+            #"Precipitation": ("tp", "Total monthly precipitation (m)"),
+            #"Soil Moisture L1": ("swvl1", "Volumetric soil water layer 1 (0-7cm)"),
+            #"Soil Moisture L2": ("swvl2", "Volumetric soil water layer 2 (7-28cm)"),
+            #"Solar Radiation": ("ssrd", "Surface solar radiation downwards (J/m²)"),
+            #"NDVI": ("NDVI", "Normalized Difference Vegetation Index"),
+            #"NDVI Anomaly": ("NDVI_anom", "NDVI deviation from climatology"),
         }
         
         selected_var_name = st.selectbox(
@@ -202,6 +192,19 @@ def main():
         # Filters
         st.subheader("Filters")
         
+        # Outbreak classification threshold
+        st.markdown("**Outbreak Classification**")
+        outbreak_threshold = st.slider(
+            "Classify as outbreak when probability >",
+            min_value=0.50,
+            max_value=1.0,
+            value=0.95,
+            step=0.05,
+            help="Threshold for binary outbreak prediction (Pressence_pred = 1)"
+        )
+        st.caption(f"ℹ️ >{outbreak_threshold:.0%} = Outbreak Predicted")
+
+
         # Risk threshold
         risk_threshold = st.slider(
             "Minimum outbreak likelihood:",
@@ -231,14 +234,18 @@ def main():
         st.markdown("""
         <div style='font-size: 0.9rem;'>
         🟢 <b>Low</b>: <30%<br>
-        🟡 <b>Medium</b>: 30-70%<br>
-        🟠 <b>High</b>: 70-85%<br>
-        🔴 <b>Extreme</b>: >85%
+        🟡 <b>Medium</b>: 30-85%<br>
+        🔴 <b>High</b>: >85%<br>
         </div>
         """, unsafe_allow_html=True)
     
     # Apply filters
     filtered_data = data.copy()
+    #filtered_data = filtered_data[filtered_data['outbreak_likelihood'] >= risk_threshold]
+    if 'outbreak_likelihood' in filtered_data.columns:
+        filtered_data['Pressence_pred'] = (filtered_data['outbreak_likelihood'] > outbreak_threshold).astype(int)
+    
+    # Apply display filter
     filtered_data = filtered_data[filtered_data['outbreak_likelihood'] >= risk_threshold]
     
     if 'Month' in data.columns and len(unique_months) > 1:
@@ -267,14 +274,14 @@ def main():
         )
     
     with col3:
-        high_risk = (filtered_data['outbreak_likelihood'] > 0.7).sum()
+        high_risk = (filtered_data['outbreak_likelihood'] > 0.85).sum()
         pct_high = (high_risk / len(filtered_data) * 100) if len(filtered_data) > 0 else 0
         st.metric(
             label="High Risk Areas",
             value=f"{high_risk:,}",
             delta=f"{pct_high:.1f}% of total",
             delta_color="inverse",
-            help="Locations with >70% outbreak probability"
+            help="Locations with >85% outbreak probability"
         )
     
     # with col4:
@@ -303,57 +310,91 @@ def main():
     map_data['longitude'] = map_data['Lon']
     
     # Dynamic color scale
-    if selected_var == 'outbreak_likelihood':
-        color_scale = 'Reds'
-        color_label = 'Outbreak Probability'
-    elif 'NDVI' in selected_var:
-        color_scale = 'Greens'
-        color_label = selected_var_name
-    elif selected_var == 't2m':
-        color_scale = 'RdYlBu_r'
-        color_label = 'Temperature (K)'
+    if selected_var == 'Pressence_pred':
+
+        map_data['outbreak_status'] = map_data['Pressence_pred'].map({
+            0: 'No Outbreak',
+            1: 'Outbreak Predicted'
+        })
+        
+        fig = px.scatter_map(
+                    map_data,
+                    lat='latitude',
+                    lon='longitude',
+                    color='outbreak_status',
+                    hover_data={
+                        'latitude': ':.3f',
+                        'longitude': ':.3f',
+                        'outbreak_status': True,
+                        'outbreak_likelihood': ':.1%',
+                        'Month': True
+                    },
+                    color_discrete_map={
+                        'No Outbreak': '#2ecc71',           # Green
+                        'Outbreak Predicted': '#e74c3c'     # Red
+                    },                    
+                    labels={'outbreak_status': 'Status'},
+                    zoom=4,
+                    center={"lat": 62, "lon": 15},
+                    height=600
+                )
+                
+        # Update layout for binary map
+        fig.update_layout(
+            margin={"r": 0, "t": 0, "l": 0, "b": 0}
+        )   
+
+        st.plotly_chart(fig, width='stretch')
     else:
-        color_scale = 'Viridis'
-        color_label = selected_var_name
-    
-    # Create map
-    hover_data_dict = {
-        'latitude': ':.3f',
-        'longitude': ':.3f',
-        selected_var: ':.3f',
-        'outbreak_likelihood': ':.1%',
-        'Month': True
-    }
-    
-    # Add kommun if available
-    if 'Kommun' in map_data.columns:
-        hover_data_dict['Kommun'] = True
-    
-    fig = px.scatter_map(
-        map_data,
-        lat='latitude',
-        lon='longitude',
-        color=selected_var,
-        size='outbreak_likelihood',
-        hover_data=hover_data_dict,
-        color_continuous_scale=color_scale,
-        size_max=15,
-        zoom=4,
-        center={"lat": 62, "lon": 15},
-        labels={selected_var: color_label},
-        height=600
-    )
-    
-    fig.update_layout(
-        margin={"r": 0, "t": 0, "l": 0, "b": 0},
-        coloraxis_colorbar=dict(
-            title=color_label,
-            thickness=15,
-            len=0.7
+
+        if selected_var == 'outbreak_likelihood':
+            color_scale = 'Reds'
+            color_label = 'Outbreak Probability'
+        elif 'NDVI' in selected_var:
+            color_scale = 'Greens'
+            color_label = selected_var_name
+        elif selected_var == 't2m':
+            color_scale = 'RdYlBu_r'
+            color_label = 'Temperature (K)'
+        else:
+            color_scale = 'Viridis'
+            color_label = selected_var_name
+        
+        # Create map
+        hover_data_dict = {
+            'latitude': ':.3f',
+            'longitude': ':.3f',
+            selected_var: ':.3f',
+            'outbreak_likelihood': ':.1%',
+            'Month': True
+        }
+        
+        
+        fig = px.scatter_map(
+            map_data,
+            lat='latitude',
+            lon='longitude',
+            color=selected_var,
+            size='outbreak_likelihood',
+            hover_data=hover_data_dict,
+            color_continuous_scale=color_scale,
+            size_max=15,
+            zoom=4,
+            center={"lat": 62, "lon": 15},
+            labels={selected_var: color_label},
+            height=600
         )
-    )
-    
-    st.plotly_chart(fig, use_container_width=True)
+        
+        fig.update_layout(
+            margin={"r": 0, "t": 0, "l": 0, "b": 0},
+            coloraxis_colorbar=dict(
+                title=color_label,
+                thickness=15,
+                len=0.7
+            )
+        )
+        
+        st.plotly_chart(fig, width='stretch')
     
     st.markdown("---")
     
@@ -381,10 +422,10 @@ def main():
             x=0.7,
             line_dash="dash",
             line_color="orange",
-            annotation_text="High Risk Threshold (70%)",
+            annotation_text="High Risk Threshold (85%)",
             annotation_position="top"
         )
-        st.plotly_chart(fig_hist, use_container_width=True)
+        st.plotly_chart(fig_hist, width='stretch')
     
     with col2:
         st.markdown("**Summary Statistics**")
@@ -392,9 +433,8 @@ def main():
             "Metric": [
                 "Total Locations",
                 "Low Risk (<30%)",
-                "Medium Risk (30-75%)",
-                "High Risk (>75%)",
-                #"Extreme Risk (>85%)",
+                "Medium Risk (30-85%)",
+                "High Risk (>85%)",
                 "Average Probability",
                 "Median Probability",
                 "Max Probability"
@@ -402,16 +442,15 @@ def main():
             "Value": [
                 f"{len(filtered_data):,}",
                 f"{(filtered_data['outbreak_likelihood'] < 0.3).sum():,}",
-                f"{((filtered_data['outbreak_likelihood'] >= 0.3) & (filtered_data['outbreak_likelihood'] < 0.75)).sum():,}",
-                f"{((filtered_data['outbreak_likelihood'] > 0.75)).sum():,}",
-                #f"{(filtered_data['outbreak_likelihood'] >= 0.85).sum():,}",
+                f"{((filtered_data['outbreak_likelihood'] >= 0.3) & (filtered_data['outbreak_likelihood'] < 0.85)).sum():,}",
+                f"{((filtered_data['outbreak_likelihood'] > 0.85)).sum():,}",
                 f"{filtered_data['outbreak_likelihood'].mean():.1%}",
                 f"{filtered_data['outbreak_likelihood'].median():.1%}",
                 f"{filtered_data['outbreak_likelihood'].max():.1%}"
             ]
         }
         stats_df = pd.DataFrame(stats_data)
-        st.dataframe(stats_df, use_container_width=True, hide_index=True)
+        st.dataframe(stats_df, width='stretch', hide_index=True)
     
 
 if __name__ == "__main__":

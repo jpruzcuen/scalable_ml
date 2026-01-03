@@ -212,7 +212,7 @@ def main():
             help="Filter to show only locations above this outbreak probability threshold"
         )
         
-        # Month filter (if available)
+        # Month filter
         if 'Month' in data.columns:
             unique_months = sorted(data['Month'].unique())
             if len(unique_months) > 1:
@@ -291,7 +291,7 @@ def main():
     st.markdown("---")
     
     # Main map
-    st.subheader(f"🗺️ {selected_var_name} Map")
+    st.subheader(f"{selected_var_name} Map")
     
     if len(filtered_data) == 0:
         st.warning("⚠️ No locations match the current filter criteria. Try adjusting the risk threshold.")

@@ -71,6 +71,13 @@ def load_predictions_from_hopsworks():
         if 'outbreak_likelihood' not in data.columns:
             st.sidebar.error("No prediction column found in data!")
             st.sidebar.info("Expected column: 'pressence_prob'")
+
+        
+        # Filter to show only latest month's predictions
+        if 'Month' in data.columns and len(data) > 0:
+            latest_month = data['Month'].max()
+            data = data[data['Month'] == latest_month]
+            st.sidebar.info(f"Showing predictions for: {latest_month.strftime('%B %Y')}")
         
         return data, "hopsworks"
         

@@ -23,19 +23,13 @@ jobs:
     - name: Install dependencies
       run: uv sync
 
-    - name: Setup CDS API credentials  
-      run: |
-        echo "url: ${{ secrets.CDSAPI_URL }}" > $HOME/.cdsapirc
-        echo "key: ${{ secrets.CDSAPI_KEY }}"
-
 
     - name: Run weather feature pipeline
       env:
         HOPSWORKS_API_KEY: ${{ secrets.HOPSWORKS_API_KEY }}
+        CDS_API_KEY: ${{ secrets.CDS_API_KEY }}
+      working-directory: notebooks
       run: |
-        cd notebooks
-        pwd
-        ls -la ../data/
         uv run ipython feature_pipeline_weather.ipynb
           
     - name: Run inference pipeline

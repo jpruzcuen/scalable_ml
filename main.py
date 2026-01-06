@@ -39,14 +39,14 @@ def load_predictions_from_hopsworks():
         
         # Rename columns to match dashboard
         column_mapping = {
-            'month': 'Month',
-            'lat': 'Lat',
-            'lon': 'Lon',
-            'kommun': 'Kommun',
-            'lan': 'Lan',
-            'ndvi': 'NDVI',
+            # 'month': 'Month',
+            # 'lat': 'Lat',
+            # 'lon': 'Lon',
+            # 'kommun': 'Kommun',
+            # 'lan': 'Lan',
+            # 'ndvi': 'NDVI',
             'pressence_prob': 'outbreak_likelihood', 
-            'pressence_pred': 'Pressence_pred'
+            #'pressence_pred': 'Pressence_pred'
         }
         
         data = data.rename(columns={k: v for k, v in column_mapping.items() if k in data.columns})
@@ -62,10 +62,6 @@ def load_predictions_from_hopsworks():
             data['swvl2'] = data['swvl2_lag1']
         if 'ssrd' not in data.columns and 'ssrd_lag1' in data.columns:
             data['ssrd'] = data['ssrd_lag1']
-        if 'NDVI_anom' not in data.columns and 'ndvi_anom' in data.columns:
-            data['NDVI_anom'] = data['ndvi_anom']
-        elif 'NDVI_anom' not in data.columns:
-            data['NDVI_anom'] = 0
         
         # Verify we have the outbreak_likelihood column
         if 'outbreak_likelihood' not in data.columns:
@@ -74,9 +70,9 @@ def load_predictions_from_hopsworks():
 
         
         # Filter to show only latest month's predictions
-        if 'Month' in data.columns and len(data) > 0:
-            latest_month = data['Month'].max()
-            data = data[data['Month'] == latest_month]
+        if 'month' in data.columns and len(data) > 0:
+            latest_month = data['month'].max()
+            data = data[data['month'] == latest_month]
             st.sidebar.info(f"Showing predictions for: {latest_month.strftime('%B %Y')}")
         
         return data, "hopsworks"

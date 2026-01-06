@@ -23,13 +23,6 @@ jobs:
     - name: Install dependencies
       run: uv sync
 
-    - name: Create data directories
-      run: |
-        pwd
-        ls -la
-        mkdir -p data/weather_daily
-        ls -la data/
-
     - name: Setup CDS API credentials  
       run: |
         echo "url: ${{ secrets.CDSAPI_URL }}" > $HOME/.cdsapirc
@@ -48,6 +41,6 @@ jobs:
     - name: Run inference pipeline
       env:
         HOPSWORKS_API_KEY: ${{ secrets.HOPSWORKS_API_KEY }}
+      working-directory: notebooks
       run: |
-        cd notebooks
         uv run ipython inference_pipeline.ipynb

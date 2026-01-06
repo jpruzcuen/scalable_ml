@@ -30,7 +30,7 @@ def load_predictions_from_hopsworks():
         FEATURE_GROUP_NAME = 'predictions'
         
         with st.spinner(f"Loading prediction data..."):
-            beetle_fg = fs.get_feature_group(FEATURE_GROUP_NAME, version=1)
+            beetle_fg = fs.get_feature_group(FEATURE_GROUP_NAME, version=2)
             data = beetle_fg.read()
         
         # Convert month to datetime
@@ -39,14 +39,14 @@ def load_predictions_from_hopsworks():
         
         # Rename columns to match dashboard
         column_mapping = {
-            # 'month': 'Month',
-            # 'lat': 'Lat',
-            # 'lon': 'Lon',
-            # 'kommun': 'Kommun',
-            # 'lan': 'Lan',
+            'month': 'Month',
+            'lat': 'Lat',
+            'lon': 'Lon',
+            'kommun': 'Kommun',
+            'lan': 'Lan',
             # 'ndvi': 'NDVI',
             'pressence_prob': 'outbreak_likelihood', 
-            #'pressence_pred': 'Pressence_pred'
+            'pressence_pred': 'Pressence_pred'
         }
         
         data = data.rename(columns={k: v for k, v in column_mapping.items() if k in data.columns})
@@ -87,7 +87,7 @@ def load_predictions_from_csv():
     """Load predictions from local CSV file (fallback)"""
     try:
         data = pd.read_csv('./data/predictions/pressence_1_12_2025_.csv')
-        data['Month'] = pd.to_datetime(data['Month'])
+        data['month'] = pd.to_datetime(data['month'])
         
         if 'Pressence_prob' in data.columns:
             data['outbreak_likelihood'] = data['Pressence_prob']
@@ -107,8 +107,6 @@ def load_predictions_from_csv():
             data['swvl2'] = data['swvl2_lag1']
         if 'ssrd' not in data.columns and 'ssrd_lag1' in data.columns:
             data['ssrd'] = data['ssrd_lag1']
-        if 'NDVI_anom' not in data.columns:
-            data['NDVI_anom'] = 0
         
         st.sidebar.success("Using local CSV file")
         return data, "csv"

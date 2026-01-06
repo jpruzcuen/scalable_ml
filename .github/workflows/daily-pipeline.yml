@@ -23,6 +23,13 @@ jobs:
     - name: Install dependencies
       run: uv sync
 
+    - name: Create data directories
+      run: |
+        mkdir -p data/weather_daily
+        mkdir -p data/ndvi
+        mkdir -p data/predictions
+
+        
     - name: Run weather feature pipeline
       env:
         HOPSWORKS_API_KEY: ${{ secrets.HOPSWORKS_API_KEY }}

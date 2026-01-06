@@ -1,4 +1,4 @@
-name: Daily Bark Beetle Prediction
+name: Daily Weather & Inference Pipeline
 
 on:
   workflow_dispatch:
@@ -7,7 +7,7 @@ on:
     - cron: '0 2 * * *'
   
 jobs:
-  run-inference:
+  run-daily-pipeline:
     runs-on: ubuntu-latest
     
     steps:
@@ -23,11 +23,11 @@ jobs:
     - name: Install dependencies
       run: uv sync
 
-    - name: Run NDVI feature pipeline
+    - name: Run weather feature pipeline
       env:
         HOPSWORKS_API_KEY: ${{ secrets.HOPSWORKS_API_KEY }}
       run: |
-        uv run ipython notebooks/feature_pipeline_ndvi.ipynb
+        uv run ipython notebooks/feature_pipeline_weather.ipynb
           
     - name: Run inference pipeline
       env:

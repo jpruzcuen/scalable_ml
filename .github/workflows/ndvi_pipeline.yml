@@ -1,14 +1,13 @@
-name: Weather feature pipeline (Every 20 days)
+name: NDVI Feature pipeline (Every 20 days)
 
 on:
-  # Run every 20 days at 3 AM UTC
-  # to update every 20 days we use specific days of the month: 1st and 21st
   workflow_dispatch:
   schedule:
+    # Run every 20 days: 1st and 21st of month at 3 AM UTC
     - cron: '0 3 1,21 * *'
 
 jobs:
-  run-weather-pipeline:
+  run-ndvi-pipeline:
     runs-on: ubuntu-latest
     
     steps:
@@ -24,8 +23,8 @@ jobs:
       - name: Install dependencies
         run: uv sync
       
-      - name: Run weather feature pipeline
+      - name: Run NDVI feature pipeline
         env:
           HOPSWORKS_API_KEY: ${{ secrets.HOPSWORKS_API_KEY }}
         run: |
-          uv run ipython notebooks/feature_pipeline_weather.ipynb
+          uv run ipython notebooks/feature_pipeline_ndvi.ipynb

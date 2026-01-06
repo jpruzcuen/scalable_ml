@@ -1,0 +1,31 @@
+name: Weather feature pipeline (Every 20 days)
+
+on:
+  # Run every 20 days at 3 AM UTC
+  # to update every 20 days we use specific days of the month: 1st and 21st
+  workflow_dispatch:
+  schedule:
+    - cron: '0 3 1,21 * *'
+
+jobs:
+  run-weather-pipeline:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+      
+      - name: Set up Python
+        run: uv python install 3.12
+      
+      - name: Install dependencies
+        run: uv sync
+      
+      - name: Run weather feature pipeline
+        env:
+          HOPSWORKS_API_KEY: ${{ secrets.HOPSWORKS_API_KEY }}
+        run: |
+          uv run ipython notebooks/feature_pipeline_weather.ipynb

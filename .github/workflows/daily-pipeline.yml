@@ -30,6 +30,12 @@ jobs:
         mkdir -p data/weather_daily
         ls -la data/
 
+    - name: Setup CDS API credentials  
+      run: |
+        echo "url: ${{ secrets.CDSAPI_URL }}" > $HOME/.cdsapirc
+        echo "key: ${{ secrets.CDSAPI_KEY }}"
+
+
     - name: Run weather feature pipeline
       env:
         HOPSWORKS_API_KEY: ${{ secrets.HOPSWORKS_API_KEY }}

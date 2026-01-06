@@ -27,6 +27,6 @@ jobs:
         env:
           HOPSWORKS_API_KEY: ${{ secrets.HOPSWORKS_API_KEY }}
           EE_SERVICE_ACCOUNT_KEY: ${{ secrets.EE_SERVICE_ACCOUNT_KEY }}
-
+        working-directory: notebooks
         run: |
-          uv run ipython notebooks/feature_pipeline_ndvi.ipynb
+          uv run ipython feature_pipeline_ndvi.ipynb

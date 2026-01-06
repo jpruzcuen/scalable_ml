@@ -13,15 +13,20 @@ from tqdm import tqdm
 
 # Weather data is downloaded from ERA5 Reanalysis
 
-CDS_URL = os.environ["CDS_API_URL"]
-CDS_KEY = os.environ["CDS_API_KEY"]
+#CDS_URL = os.environ["CDS_API_URL"]
+#CDS_KEY = os.environ["CDS_API_KEY"]
 
 def download_monthly_weather_from_obs(obs_df):
     '''
     obs_df: dataframe with observation data
     '''
 
-    c = cdsapi.Client(url = CDS_URL, key=CDS_KEY)
+    #c = cdsapi.Client(url = CDS_URL, key=CDS_KEY)
+    c = cdsapi.Client(
+    url=os.environ.get("CDS_API_URL", "https://cds.climate.copernicus.eu/api"),
+    key=os.environ["CDS_API_KEY"]
+    )
+
     zip_path = "../data/weather_monthly/era5_sweden_monthly.zip"
 
     c.retrieve(
@@ -76,7 +81,11 @@ def download_daily_weather(start_date, end_date):
             year_month_days[year_month] = []
         year_month_days[year_month].append(date.day)
 
-    c = cdsapi.Client(url = CDS_URL, key=CDS_KEY)
+    #c = cdsapi.Client(url = CDS_URL, key=CDS_KEY)
+    c = cdsapi.Client(
+    url=os.environ.get("CDS_API_URL", "https://cds.climate.copernicus.eu/api"),
+    key=os.environ["CDS_API_KEY"]
+    )
     
     i = 0
     # Make a separate request for each year-month combination

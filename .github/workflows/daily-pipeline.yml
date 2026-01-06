@@ -27,6 +27,7 @@ jobs:
     - name: Run weather feature pipeline
       env:
         HOPSWORKS_API_KEY: ${{ secrets.HOPSWORKS_API_KEY }}
+        CDS_API_URL: https://cds.climate.copernicus.eu/api
         CDS_API_KEY: ${{ secrets.CDS_API_KEY }}
       working-directory: notebooks
       run: |

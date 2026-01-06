@@ -44,7 +44,6 @@ def load_predictions_from_hopsworks():
             'lon': 'Lon',
             'kommun': 'Kommun',
             'lan': 'Lan',
-            # 'ndvi': 'NDVI',
             'pressence_prob': 'outbreak_likelihood', 
             'pressence_pred': 'Pressence_pred'
         }
@@ -155,7 +154,7 @@ def main():
         st.markdown("---")
         st.subheader("Data Source")
         if data_source == "hopsworks":
-           # st.success("✅ Hopsworks Feature Store")
+           # st.success("Hopsworks Feature Store")
             st.caption(f"Last updated: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
             if st.button("🔄 Refresh Data", width='stretch'):
                 st.cache_data.clear()
@@ -170,13 +169,6 @@ def main():
         variable_options = {
             "Outbreak Likelihood": ("outbreak_likelihood", "Predicted probability of beetle outbreak"),
             "Outbreak Predicted (Binary)": ("Pressence_pred", "Yes/No outbreak based on threshold"),
-            #"Temperature": ("t2m", "Monthly average temperature (Kelvin)"),
-            #"Precipitation": ("tp", "Total monthly precipitation (m)"),
-            #"Soil Moisture L1": ("swvl1", "Volumetric soil water layer 1 (0-7cm)"),
-            #"Soil Moisture L2": ("swvl2", "Volumetric soil water layer 2 (7-28cm)"),
-            #"Solar Radiation": ("ssrd", "Surface solar radiation downwards (J/m²)"),
-            #"NDVI": ("NDVI", "Normalized Difference Vegetation Index"),
-            #"NDVI Anomaly": ("NDVI_anom", "NDVI deviation from climatology"),
         }
         
         selected_var_name = st.selectbox(
@@ -285,16 +277,6 @@ def main():
             help="Locations with >85% outbreak probability"
         )
     
-    # with col4:
-    #     extreme_risk = (filtered_data['outbreak_likelihood'] > 0.85).sum()
-    #     pct_extreme = (extreme_risk / len(filtered_data) * 100) if len(filtered_data) > 0 else 0
-    #     st.metric(
-    #         label="Extreme Risk",
-    #         value=f"{extreme_risk:,}",
-    #         delta=f"{pct_extreme:.1f}% of total",
-    #         delta_color="inverse",
-    #         help="Locations with >85% outbreak probability"
-    #     )
     
     st.markdown("---")
     

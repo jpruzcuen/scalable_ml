@@ -19,4 +19,5 @@ dependencies = [
     "tqdm>=4.67.1",
     "xarray>=2024.0.0,<2025.0.0",
     "geopandas>=1.0.0",
+    "netcdf4>=1.6.0",
 ]

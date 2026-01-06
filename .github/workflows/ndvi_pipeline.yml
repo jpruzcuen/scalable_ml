@@ -26,7 +26,7 @@ jobs:
       - name: Run NDVI feature pipeline
         env:
           HOPSWORKS_API_KEY: ${{ secrets.HOPSWORKS_API_KEY }}
-          GEE_SERVICE_ACCOUNT_KEY: ${{ secrets.GEE_SERVICE_ACCOUNT_KEY }}
+          EE_SERVICE_ACCOUNT_KEY: ${{ secrets.EE_SERVICE_ACCOUNT_KEY }}
 
         run: |
           uv run ipython notebooks/feature_pipeline_ndvi.ipynb

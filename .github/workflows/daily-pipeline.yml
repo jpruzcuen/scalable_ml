@@ -43,4 +43,5 @@ jobs:
       env:
         HOPSWORKS_API_KEY: ${{ secrets.HOPSWORKS_API_KEY }}
       run: |
-        uv run ipython notebooks/inference_pipeline.ipynb
+        cd notebooks
+        uv run ipython inference_pipeline.ipynb

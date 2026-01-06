@@ -3,7 +3,8 @@ import matplotlib.pyplot as plt
 
 ######################################## PLOTS ########################################
 
-def plot_heatmap_on_map(dataframe, variable, title, lat_col='Lat', lon_col='Lon'):
+def plot_heatmap_on_map(dataframe, variable, title, 
+                        lat_col='lat', lon_col='lon'):
 
     gdf = geopandas.GeoDataFrame(
         dataframe, geometry=geopandas.points_from_xy(dataframe[lon_col], dataframe[lat_col])
@@ -13,13 +14,24 @@ def plot_heatmap_on_map(dataframe, variable, title, lat_col='Lat', lon_col='Lon'
 
     # Plot Sweden with t2m as a heatmap
     ax = world[world['NAME'] == 'Sweden'].plot(
-        color='lightgrey', edgecolor='black', figsize=(12, 10))
+        color='lightgrey', edgecolor='black', figsize=(8, 6))
 
-    # Plot the GeoDataFrame with t2m values as a heatmap
-    gdf.plot(ax=ax, column=variable, cmap='RdYlBu_r', markersize=20, alpha=0.5, 
+    if variable == 'inference':
+        # Plot presence and absence with different colors
+        gdf_absent = gdf[gdf['pressence_pred'] == 0]
+        gdf_present = gdf[gdf['pressence_pred'] == 1]
+
+        gdf_absent.plot(ax=ax, color='white', edgecolor='white', markersize=5, alpha=0.5, label='Absent (0)')
+        gdf_present.plot(ax=ax, color='red', markersize=5, alpha=0.7, label='Present (1)')
+        ax.legend()
+    
+    else:
+        # Plot the GeoDataFrame with t2m values as a heatmap
+        gdf.plot(ax=ax, column=variable, cmap='RdYlBu_r', markersize=20, alpha=0.5, 
             legend=True, legend_kwds={'label': title, 'shrink': 0.6})
 
-    ax.set_title(f'{title} Distribution over Sweden')
+    ax.set_title(title)
+
     plt.tight_layout()
     plt.show()
 

@@ -27,7 +27,7 @@ def load_predictions_from_hopsworks():
             project = hopsworks.login(api_key_value=os.getenv('HOPSWORKS_API_KEY'))
             fs = project.get_feature_store()
         
-        FEATURE_GROUP_NAME = 'beetle_features'
+        FEATURE_GROUP_NAME = 'predictions'
         
         with st.spinner(f"Loading prediction data..."):
             beetle_fg = fs.get_feature_group(FEATURE_GROUP_NAME, version=1)

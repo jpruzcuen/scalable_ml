@@ -25,19 +25,23 @@ jobs:
 
     - name: Create data directories
       run: |
+        pwd
+        ls -la
         mkdir -p data/weather_daily
-        mkdir -p data/ndvi
-        mkdir -p data/predictions
+        ls -la data/
 
-        
     - name: Run weather feature pipeline
       env:
         HOPSWORKS_API_KEY: ${{ secrets.HOPSWORKS_API_KEY }}
       run: |
+        cd notebooks
+        pwd
+        ls -la ../data/
         uv run ipython notebooks/feature_pipeline_weather.ipynb
           
     - name: Run inference pipeline
       env:
         HOPSWORKS_API_KEY: ${{ secrets.HOPSWORKS_API_KEY }}
       run: |
+        cd notebooks
         uv run ipython notebooks/inference_pipeline.ipynb

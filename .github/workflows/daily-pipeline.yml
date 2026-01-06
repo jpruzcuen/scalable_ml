@@ -37,7 +37,7 @@ jobs:
         cd notebooks
         pwd
         ls -la ../data/
-        uv run ipython notebooks/feature_pipeline_weather.ipynb
+        uv run ipython feature_pipeline_weather.ipynb
           
     - name: Run inference pipeline
       env:

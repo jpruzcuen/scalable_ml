@@ -19,11 +19,7 @@ The model was trained to predict the likelyhood of an outbreak next month (t+1) 
 
 As mentioned there are 2 data sources: weather and NDVI. The weather data is downloaded every day. Then it's sent to the feature pipeline to create lagged features and finally save this data in Hopsworks. NDVI data is downlaoded every 20 days because the composites are updated every 16 days (approximately). 
 
-The inference pipeline is run every day and consists of 2 steps: download data from Hopsworks and generate predictions (inference).
-
-## Application
-
-The UI was built using the _streamlit_ library.
+The inference pipeline is run every day and consists of 2 steps: download data from Hopsworks and generate predictions (inference). The prediction results are displayed in a dashboard built using the _streamlit_ library.
 
 ## Technologies Used
 

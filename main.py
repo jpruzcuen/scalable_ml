@@ -68,13 +68,15 @@ def load_predictions_from_hopsworks():
             st.sidebar.info("Expected column: 'pressence_prob'")
 
         
-        # Filter to show only latest month's predictions
-        if 'month' in data.columns and len(data) > 0:
-            latest_month = data['month'].max()
-            data = data[data['month'] == latest_month]
-            st.sidebar.info(f"Showing predictions for: {latest_month.strftime('%B %Y')}")
+        # Initialize latest_month with a default value
+        latest_month = datetime.now()  
         
-        return data, "hopsworks"
+        # Filter to show only latest month's predictions
+        if 'Month' in data.columns and len(data) > 0:  
+            latest_month = data['Month'].max()
+            data = data[data['Month'] == latest_month]
+        
+        return data, "hopsworks", latest_month
         
     except Exception as e:
         st.sidebar.error(f"Hopsworks error: {str(e)}")
@@ -107,8 +109,14 @@ def load_predictions_from_csv():
         if 'ssrd' not in data.columns and 'ssrd_lag1' in data.columns:
             data['ssrd'] = data['ssrd_lag1']
         
+        # Get latest month
+        if 'month' in data.columns and len(data) > 0:
+            latest_month = data['month'].max()
+        else:
+            latest_month = datetime.now() 
+
         st.sidebar.success("Using local CSV file")
-        return data, "csv"
+        return data, "csv", latest_month
         
     except FileNotFoundError:
         st.sidebar.warning("⚠️ No data found")
@@ -140,7 +148,7 @@ def main():
         """)
     
     # Load data
-    data, data_source = load_data()
+    data, data_source, latest_month = load_data()
     
     if data.empty:
         st.error("No data available. Please check your data source.")
@@ -155,6 +163,8 @@ def main():
         st.subheader("Data Source")
         if data_source == "hopsworks":
            # st.success("Hopsworks Feature Store")
+            st.info(f"Showing predictions for: {latest_month.strftime('%B %Y')}")
+
             st.caption(f"Last updated: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
             if st.button("🔄 Refresh Data", width='stretch'):
                 st.cache_data.clear()

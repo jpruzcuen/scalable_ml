@@ -22,6 +22,7 @@ dependencies = [
     "netcdf4>=1.6.0",
     "xgboost>=2.0.0",
     "pyjks<20.0.0",
+    "python-dotenv>=1.0.0",
 ]
 
 [tool.poetry]

@@ -1,7 +1,7 @@
 --only-binary :all:
 cdsapi>=0.7.0
 earthengine-api>=0.1.0
-hopsworks>=4.2.0,<4.3.0
+hopsworks>=3.7.0,<4.0.0
 jupyter>=1.1.1
 matplotlib>=3.10.8
 numpy>=1.26.0,<2.0.0

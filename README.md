@@ -1,6 +1,6 @@
 # Bark beetle outbreak prediction system
 
-A machine learning system for predicting spruce bark beetle (_Ips typographus_) outbreaks in Sweden. These beetles are a well known pest destroying a lot of forest area in Europe every year. They are actually the #1 cause of forest damage in Sweden every year. The prediction model uses weather data, NDVI values from satellite imagery and species observations from Artportalen. The dashbaord is publicly available [here](https://pages.github.com/)
+A machine learning system for predicting spruce bark beetle (_Ips typographus_) outbreaks in Sweden. These beetles are a well known pest destroying a lot of forest area in Europe every year. They are actually the #1 cause of forest damage in Sweden every year. The prediction model uses weather data, NDVI values from satellite imagery and species observations from Artportalen. The dashboard is publicly available [here](https://pages.github.com/)
 
 ## Overview
 
@@ -12,14 +12,14 @@ This system monitors and predicts bark beetle outbreak likelihood across Sweden 
 
 For training the binary classification model, observational data from Artportalen was used. These are human-made recordings of dates and coordinates where spruce bark beetles were observed in Sweden between 2018 and 2025. These serve as datapoints with positive label class. To train a model with supervised training we required datapoints with the negative class. For pressence-only datasets like this, the way to generate a "background" signal is to find observational data of another species B that is similar to the one being studied A. This species should obviously live in the same conditions, such that it would be likely that studies that observed B could've likely observed A too. For this we used observations of björksplintborre (_Scolytus ratzeburgii_) in Sweden. 
 
-The model was trained to predict the likelyhood of an outbreak next month (t+1) based on the data of this month (t) and the last two moths (t-1 and t-2). For NDVI data in particular, only only {t, t-1} months of lagged features were used.
+The model was trained to predict the likelihood of an outbreak next month (t+1) based on the data of this month (t) and the last two months (t-1 and t-2). For NDVI data in particular, only {t, t-1} months of lagged features were used.
 
 
 ## Model Inference
 
-As mentioned there are 2 data sources: weather and NDVI. The weather data is downloaded every day. Then it's sent to the feature pipeline to create lagged features and finally save this data in Hopsworks. NDVI data is downlaoded every 20 days because the composites are updated every 16 days (approximately). 
+As mentioned there are 2 data sources: weather and NDVI. The weather data is downloaded every day. Then it's sent to the feature pipeline to create lagged features and finally save this data in Hopsworks. NDVI data is downloaded every 20 days because the composites are updated every 16 days (approximately). 
 
-The inference pipeline is run every day and consists of 2 steps: download data from Hopsworks and generate predictions (inference). The prediction results are displayed in [this](https://pages.github.com/) dashboard, which was built using the _streamlit_ library.
+The inference pipeline is run every day and consists of 2 steps: download data from Hopsworks and generate predictions (inference). The prediction results are displayed in [this](https://pages.github.com/) dashboard, which was built using the _streamlit_ framework.
 
 ## Technologies Used
 

@@ -15,5 +15,3 @@ xarray>=2024.0.0,<2025.0.0
 geopandas>=1.0.0
 netcdf4>=1.6.0
 xgboost>=2.0.0
-# Exclude twofish to avoid compilation on Streamlit Cloud
-twofish==0.3.0 ; sys_platform == "no_such_platform"

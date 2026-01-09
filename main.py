@@ -22,9 +22,16 @@ st.set_page_config(
 def load_predictions_from_hopsworks():
     """Load latest predictions from Hopsworks"""
     try:
+        # Resolve API key from Streamlit secrets or env
+        api_key = st.secrets.get("HOPSWORKS_API_KEY", os.getenv("HOPSWORKS_API_KEY"))
+        if not api_key:
+            raise RuntimeError(
+                "Missing HOPSWORKS_API_KEY. Configure it in Streamlit secrets or environment variables."
+            )
+
         # Connect to Hopsworks
         with st.spinner("Connecting to Hopsworks Feature Store..."):
-            project = hopsworks.login(api_key_value=os.getenv('HOPSWORKS_API_KEY'))
+            project = hopsworks.login(api_key_value=api_key)
             fs = project.get_feature_store()
         
         FEATURE_GROUP_NAME = 'predictions'
@@ -79,9 +86,12 @@ def load_predictions_from_hopsworks():
         return data, "hopsworks", latest_month
         
     except Exception as e:
-        st.sidebar.error(f"Hopsworks error: {str(e)}")
-        st.sidebar.info("Falling back to local CSV file...")
-        return load_predictions_from_csv()
+        st.sidebar.error(f"Hopsworks error: {e.__class__.__name__}: {e}")
+        st.sidebar.info("No CSV fallback: surfacing Hopsworks error details.")
+        # Surface full traceback in the UI and logs
+        st.exception(e)
+        # Re-raise so deployment logs capture the cause
+        raise
 
 @st.cache_data
 def load_predictions_from_csv():

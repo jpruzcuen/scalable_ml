@@ -1,0 +1,29 @@
+name: id2223n
+channels:
+  - conda-forge
+  - anaconda
+dependencies:
+  - python=3.14
+  - pip
+  - numpy
+  - pandas
+  - matplotlib
+  - scikit-learn
+  - scipy
+  - xgboost
+  - geopandas
+  - jupyter
+  - jupyterlab
+  - netcdf4
+  - shapely
+  - openssl
+  - pip:
+      - earthengine-api==1.7.4
+      - google-auth==2.45.0
+      - google-cloud-storage==3.7.0
+      - hopsworks==4.4.2
+      - python-dotenv==1.2.1
+      - requests==2.32.5
+      - pyogrio==0.12.1
+      - pydantic==1.10.17
+prefix: /Users/jp/miniforge3/envs/id2223n

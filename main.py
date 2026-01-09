@@ -28,11 +28,23 @@ def load_predictions_from_hopsworks():
             raise RuntimeError(
                 "Missing HOPSWORKS_API_KEY. Configure it in Streamlit secrets or environment variables."
             )
+        host = st.secrets.get("HOPSWORKS_HOST", os.getenv("HOPSWORKS_HOST"))
+        project_name = st.secrets.get("HOPSWORKS_PROJECT", os.getenv("HOPSWORKS_PROJECT"))
 
         # Connect to Hopsworks
         with st.spinner("Connecting to Hopsworks Feature Store..."):
-            project = hopsworks.login(api_key_value=api_key)
-            fs = project.get_feature_store()
+            if host and project_name:
+                project = hopsworks.login(host=host, project=project_name, api_key_value=api_key)
+            elif project_name:
+                project = hopsworks.login(project=project_name, api_key_value=api_key)
+            else:
+                project = hopsworks.login(api_key_value=api_key)
+
+            # Explicitly specify the feature store name when known
+            if project_name:
+                fs = project.get_feature_store(name=project_name)
+            else:
+                fs = project.get_feature_store()
         
         FEATURE_GROUP_NAME = 'predictions'
         
@@ -85,6 +97,24 @@ def load_predictions_from_hopsworks():
         
         return data, "hopsworks", latest_month
         
+    except TypeError as e:
+        # Common HSFS schema mismatch: missing hive_endpoint usually indicates
+        # host/project config or SDK/backend version mismatch.
+        if "hive_endpoint" in str(e):
+            st.sidebar.error("Hopsworks Feature Store configuration error: missing hive_endpoint")
+            st.sidebar.info(
+                "Check secrets HOPSWORKS_HOST and HOPSWORKS_PROJECT, and ensure hsfs/hopsworks SDK versions match your Hopsworks cluster."
+            )
+            st.write({
+                "host": host or "(not set)",
+                "project": project_name or "(not set)",
+            })
+            st.exception(e)
+            raise
+        else:
+            st.sidebar.error(f"Hopsworks error: {e.__class__.__name__}: {e}")
+            st.exception(e)
+            raise
     except Exception as e:
         st.sidebar.error(f"Hopsworks error: {e.__class__.__name__}: {e}")
         st.sidebar.info("No CSV fallback: surfacing Hopsworks error details.")

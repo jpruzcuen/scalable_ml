@@ -31,20 +31,21 @@ def load_predictions_from_hopsworks():
         host = st.secrets.get("HOPSWORKS_HOST", os.getenv("HOPSWORKS_HOST"))
         project_name = st.secrets.get("HOPSWORKS_PROJECT", os.getenv("HOPSWORKS_PROJECT"))
 
+        # Require host to avoid ambiguous cluster resolution
+        if not host:
+            raise RuntimeError(
+                "HOPSWORKS_HOST is not set. Add your cluster URL to Streamlit secrets or environment (e.g., https://YOUR-CLUSTER.hopsworks.ai)."
+            )
+
         # Connect to Hopsworks
         with st.spinner("Connecting to Hopsworks Feature Store..."):
-            if host and project_name:
-                project = hopsworks.login(host=host, project=project_name, api_key_value=api_key)
-            elif project_name:
-                project = hopsworks.login(project=project_name, api_key_value=api_key)
-            else:
-                project = hopsworks.login(api_key_value=api_key)
-
-            # Explicitly specify the feature store name when known
             if project_name:
-                fs = project.get_feature_store(name=project_name)
+                project = hopsworks.login(host=host, project=project_name, api_key_value=api_key)
             else:
-                fs = project.get_feature_store()
+                project = hopsworks.login(host=host, api_key_value=api_key)
+
+            # Use default feature store for the project
+            fs = project.get_feature_store()
         
         FEATURE_GROUP_NAME = 'predictions'
         
@@ -105,10 +106,13 @@ def load_predictions_from_hopsworks():
             st.sidebar.info(
                 "Check secrets HOPSWORKS_HOST and HOPSWORKS_PROJECT, and ensure hsfs/hopsworks SDK versions match your Hopsworks cluster."
             )
-            st.write({
-                "host": host or "(not set)",
-                "project": project_name or "(not set)",
-            })
+            # Show environment and client versions for debugging
+            try:
+                import hsfs
+                st.sidebar.caption(f"Client versions: hopsworks={getattr(hopsworks, '__version__', 'unknown')}, hsfs={getattr(hsfs, '__version__', 'unknown')}")
+            except Exception:
+                st.sidebar.caption(f"Client versions: hopsworks={getattr(hopsworks, '__version__', 'unknown')}, hsfs=(not installed)")
+            st.write({"host": host, "project": project_name or "(not set)"})
             st.exception(e)
             raise
         else:

@@ -31,7 +31,14 @@ The inference pipeline is run every day and consists of 2 steps: download data f
 
 ## To run the project locally
 
+# Create virtual environment and install dependencies
+```bash
+uv venv
+uv sync
+```
+
 ### Configure Hopsworks
+
 Create a `.env` file in the project root:
 
 ```bash

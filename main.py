@@ -36,18 +36,18 @@ def load_predictions_from_hopsworks():
         if not api_key:
             raise RuntimeError("Missing HOPSWORKS_API_KEY")
 
-        #host = st.secrets.get("HOPSWORKS_HOST", os.getenv("HOPSWORKS_HOST"))
+        host = st.secrets.get("HOPSWORKS_HOST", os.getenv("HOPSWORKS_HOST"))
         #project_name = st.secrets.get("HOPSWORKS_PROJECT", os.getenv("HOPSWORKS_PROJECT"))
 
         # Require host to avoid ambiguous cluster resolution
-        # if not host:
-        #     raise RuntimeError(
-        #         "HOPSWORKS_HOST is not set. Add your cluster URL to Streamlit secrets or environment (e.g., https://YOUR-CLUSTER.hopsworks.ai)."
-        #     )
+        if not host:
+            raise RuntimeError(
+                "HOPSWORKS_HOST is not set. Add your cluster URL to Streamlit secrets or environment (e.g., https://YOUR-CLUSTER.hopsworks.ai)."
+            )
 
         # Connect to Hopsworks
         with st.spinner("Connecting to Hopsworks Feature Store..."):
-            project = hopsworks.login(project='ebbalg99', api_key_value=api_key)
+            project = hopsworks.login(project='ebbalg99', api_key_value=api_key, host=host)
 
             # Use default feature store for the project
             fs = project.get_feature_store()

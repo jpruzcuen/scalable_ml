@@ -23,12 +23,6 @@ def load_predictions_from_hopsworks():
     """Load latest predictions from Hopsworks"""
     try:
         # Resolve API key from Streamlit secrets or env
-        # api_key = st.secrets.get("HOPSWORKS_API_KEY", os.getenv("HOPSWORKS_API_KEY"))
-        # if not api_key:
-        #     raise RuntimeError(
-        #         "Missing HOPSWORKS_API_KEY. Configure it in Streamlit secrets or environment variables."
-        #     )
-
         api_key = os.getenv("HOPSWORKS_API_KEY")
         if not api_key:
             api_key = st.secrets.get("HOPSWORKS_API_KEY")  # Only check secrets if env var missing
@@ -37,7 +31,6 @@ def load_predictions_from_hopsworks():
             raise RuntimeError("Missing HOPSWORKS_API_KEY")
 
         host = st.secrets.get("HOPSWORKS_HOST", os.getenv("HOPSWORKS_HOST"))
-        #project_name = st.secrets.get("HOPSWORKS_PROJECT", os.getenv("HOPSWORKS_PROJECT"))
 
         # Require host to avoid ambiguous cluster resolution
         if not host:

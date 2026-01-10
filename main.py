@@ -40,9 +40,9 @@ def load_predictions_from_hopsworks():
         # Connect to Hopsworks
         with st.spinner("Connecting to Hopsworks Feature Store..."):
             if project_name:
-                project = hopsworks.login(host=host, project=project_name, api_key_value=api_key)
+                project = hopsworks.login(project=project_name, api_key_value=api_key)
             else:
-                project = hopsworks.login(host=host, api_key_value=api_key)
+                project = hopsworks.login(api_key_value=api_key)
 
             # Use default feature store for the project
             fs = project.get_feature_store()

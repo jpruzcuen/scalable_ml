@@ -27,8 +27,12 @@ jobs:
     - name: Run weather feature pipeline
       env:
         HOPSWORKS_API_KEY: ${{ secrets.HOPSWORKS_API_KEY }}
+        HOPSWORKS_HOST : ${{ secrets.HOPSWORKS_HOST }}
+        HOPSWORKS_PROJECT : ${{ secrets.HOPSWORKS_PROJECT }}
         CDS_API_URL: https://cds.climate.copernicus.eu/api
         CDS_API_KEY: ${{ secrets.CDS_API_KEY }}
+        
+        
       working-directory: notebooks
       run: |
         uv run ipython feature_pipeline_weather.ipynb
@@ -36,6 +40,9 @@ jobs:
     - name: Run inference pipeline
       env:
         HOPSWORKS_API_KEY: ${{ secrets.HOPSWORKS_API_KEY }}
+        HOPSWORKS_HOST : ${{ secrets.HOPSWORKS_HOST }}
+        HOPSWORKS_PROJECT : ${{ secrets.HOPSWORKS_PROJECT }}
+        
       working-directory: notebooks
       run: |
         uv run ipython inference_pipeline.ipynb

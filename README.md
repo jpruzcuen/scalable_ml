@@ -1,6 +1,6 @@
 # Bark beetle outbreak prediction system
 
-A machine learning system for predicting spruce bark beetle (_Ips typographus_) outbreaks in Sweden. These beetles are a well known pest destroying a lot of forest area in Europe every year. They are actually the #1 cause of forest damage in Sweden every year. The prediction model uses weather data, NDVI values from satellite imagery and species observations from Artportalen. The dashboard is publicly available [here](https://pages.github.com/)
+A machine learning system for predicting spruce bark beetle (_Ips typographus_) outbreaks in Sweden. These beetles are a well known pest destroying a lot of forest area in Europe every year. They are actually the #1 cause of forest damage in Sweden every year. The prediction model uses weather data, NDVI values from satellite imagery and species observations from Artportalen. The dashboard is publicly available [here](https://granbarkborren.streamlit.app/)
 
 ## Overview
 
@@ -19,7 +19,7 @@ The model was trained to predict the likelihood of an outbreak next month (t+1) 
 
 As mentioned there are 2 data sources: weather and NDVI. The weather data is downloaded every day. Then it's sent to the feature pipeline to create lagged features and finally save this data in Hopsworks. NDVI data is downloaded every 20 days because the composites are updated every 16 days (approximately). 
 
-The inference pipeline is run every day and consists of 2 steps: download data from Hopsworks and generate predictions (inference). The prediction results are displayed in [this](https://pages.github.com/) dashboard, which was built using the _streamlit_ framework.
+The inference pipeline is run every day and consists of 2 steps: download data from Hopsworks and generate predictions (inference). The prediction results are displayed in [this](https://granbarkborren.streamlit.app/) dashboard, which was built using the _streamlit_ framework.
 
 ## Technologies Used
 

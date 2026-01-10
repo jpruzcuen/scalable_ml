@@ -33,7 +33,7 @@ jobs:
         CDS_API_KEY: ${{ secrets.CDS_API_KEY }}
       working-directory: notebooks
       run: |
-        uv run jupyter nbconvert --to notebook --execute feature_pipeline_weather.ipynb
+        uv run ipython feature_pipeline_weather.ipynb
           
     - name: Run inference pipeline
       env:
@@ -42,4 +42,4 @@ jobs:
         HOPSWORKS_PROJECT: ${{ secrets.HOPSWORKS_PROJECT }}
       working-directory: notebooks
       run: |
-        uv run jupyter nbconvert --to notebook --execute inference_pipeline.ipynb
+        uv run ipython inference_pipeline.ipynb
